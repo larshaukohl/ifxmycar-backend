@@ -1,21 +1,27 @@
-const https = require("https");
+const http = require("http");
 
 exports.handler = async (event) => {
   const plate = event.queryStringParameters?.plate;
   
   if (!plate) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Mangler nummerplade" }) };
+    return { 
+      statusCode: 400, 
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ error: "Mangler nummerplade" }) 
+    };
   }
 
   return new Promise((resolve) => {
     const options = {
       hostname: "api.motorapi.dk",
       path: `/vehicles/${plate}`,
-      headers: { "X-Api-Key": process.env.MOTORAPI_KEY },
-      rejectUnauthorized: false
+      headers: { 
+        "X-Api-Key": process.env.MOTORAPI_KEY,
+        "Accept": "application/json"
+      }
     };
 
-    https.get(options, (res) => {
+    http.get(options, (res) => {
       let data = "";
       res.on("data", chunk => data += chunk);
       res.on("end", () => resolve({
