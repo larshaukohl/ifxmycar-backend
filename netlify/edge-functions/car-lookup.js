@@ -4,21 +4,25 @@ export default async (request, context) => {
     const plate = url.searchParams.get("plate");
 
     if (!plate) {
-      return new Response(JSON.stringify({ error: "Mangler nummerplade" }), { 
+      return new Response(JSON.stringify({ error: "Mangler nummerplade" }), {
         status: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
       });
     }
 
     const apiKey = Netlify.env.get("MOTORAPI_KEY");
-    
-    const res = await fetch(`https://api.motorapi.dk/vehicles/${plate}`, {
-      headers: { "X-Api-Key": apiKey }
+    const apiUrl = `https://api.motorapi.dk/vehicles/${plate}`;
+
+    const res = await fetch(apiUrl, {
+      headers: {
+        "X-Api-Key": apiKey,
+        "Accept": "application/json"
+      }
     });
 
-    const data = await res.json();
+    const text = await res.text();
 
-    return new Response(JSON.stringify(data), {
+    return new Response(text, {
       status: res.status,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
     });
