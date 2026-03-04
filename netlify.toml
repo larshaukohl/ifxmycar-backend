@@ -1,5 +1,7 @@
 [build]
-  edge_functions = "netlify/edge-functions"
+  functions = "netlify/functions"
+```
 
-[functions]
-  node_bundler = "esbuild"
+**3. Test med denne nye URL** (functions bruger `/.netlify/functions/` i stien):
+```
+https://polite-basbousa-35b321.netlify.app/.netlify/functions/car-lookup?plate=CB96940
