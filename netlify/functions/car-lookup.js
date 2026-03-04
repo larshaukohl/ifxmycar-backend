@@ -17,15 +17,13 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    const apiKey = process.env.MOTORAPI_KEY;
-    console.log("Plate:", plate, "HasKey:", !!apiKey);
+    console.log("Plate:", plate);
 
     const options = {
-      hostname: "api.motorapi.dk",
-      path: `/vehicles/${plate}`,
+      hostname: "api.synsbasen.dk",
+      path: `/v1/vehicles/registration/${plate}`,
       agent: agent,
       headers: {
-        "X-Api-Key": apiKey,
         "Accept": "application/json"
       }
     };
