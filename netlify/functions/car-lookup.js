@@ -33,9 +33,9 @@ const server = http.createServer((req, res) => {
       res.writeHead(apiRes.statusCode);
       res.end(data);
     });
-  }).on("error", (err) => {
+ }).on("error", (err) => {
     res.writeHead(500);
-    res.end(JSON.stringify({ error: err.message }));
+    res.end(JSON.stringify({ error: err.message, code: err.code, stack: err.stack }));
   });
 });
 
