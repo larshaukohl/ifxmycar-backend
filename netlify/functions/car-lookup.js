@@ -1,3 +1,4 @@
+const https = require("https");
 const http = require("http");
 
 exports.handler = async (event) => {
@@ -11,17 +12,20 @@ exports.handler = async (event) => {
     };
   }
 
+  const agent = new https.Agent({ rejectUnauthorized: false });
+
   return new Promise((resolve) => {
     const options = {
       hostname: "api.motorapi.dk",
       path: `/vehicles/${plate}`,
+      agent: agent,
       headers: { 
         "X-Api-Key": process.env.MOTORAPI_KEY,
         "Accept": "application/json"
       }
     };
 
-    http.get(options, (res) => {
+    https.get(options, (res) => {
       let data = "";
       res.on("data", chunk => data += chunk);
       res.on("end", () => resolve({
