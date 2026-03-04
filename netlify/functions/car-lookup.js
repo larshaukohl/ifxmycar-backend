@@ -1,8 +1,6 @@
 const https = require("https");
 const http = require("http");
 
-const agent = new https.Agent({ rejectUnauthorized: false });
-
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Content-Type", "application/json");
@@ -17,39 +15,29 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    console.log("Plate:", plate);
+    // Brug fetch i stedet for https.get
+    const apiUrl = `https://api.motorapi.dk/vehicles/${plate}`;
+    console.log("Kalder:", apiUrl);
 
-    const options = {
-      hostname: "api.motorapi.dk",
-      path: `/vehicles/${plate}`,
-      agent: agent,
+    fetch(apiUrl, {
       headers: {
         "X-Api-Key": process.env.MOTORAPI_KEY,
-        "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0"
+        "Accept": "application/json"
       }
-    };
-
-    const apiReq = https.get(options, (apiRes) => {
-      let data = "";
-      apiRes.on("data", chunk => data += chunk);
-      apiRes.on("end", () => {
-        console.log("API svar:", apiRes.statusCode, data);
-        res.writeHead(apiRes.statusCode);
-        res.end(data);
-      });
-    });
-
-    apiReq.on("error", (err) => {
-      console.error("API fejl:", err.message);
+    })
+    .then(r => {
+      console.log("Status:", r.status, "OK:", r.ok);
+      return r.text();
+    })
+    .then(data => {
+      console.log("Data:", data);
+      res.writeHead(200);
+      res.end(data);
+    })
+    .catch(err => {
+      console.error("Fetch fejl:", err.message);
       res.writeHead(500);
       res.end(JSON.stringify({ error: err.message }));
-    });
-
-    apiReq.setTimeout(10000, () => {
-      apiReq.destroy();
-      res.writeHead(500);
-      res.end(JSON.stringify({ error: "Timeout" }));
     });
 
   } catch (err) {
