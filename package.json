@@ -1,0 +1,8 @@
+{
+  "name": "fixmycar-backend",
+  "version": "1.0.0",
+  "main": "netlify/functions/car-lookup.js",
+  "scripts": {
+    "start": "node netlify/functions/car-lookup.js"
+  }
+}
