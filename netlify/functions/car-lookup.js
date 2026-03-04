@@ -20,11 +20,13 @@ const server = http.createServer((req, res) => {
     console.log("Plate:", plate);
 
     const options = {
-      hostname: "api.synsbasen.dk",
-      path: `/v1/vehicles/registration/${plate}`,
+      hostname: "api.motorapi.dk",
+      path: `/vehicles/${plate}`,
       agent: agent,
       headers: {
-        "Accept": "application/json"
+        "X-Api-Key": process.env.MOTORAPI_KEY,
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0"
       }
     };
 
@@ -39,13 +41,12 @@ const server = http.createServer((req, res) => {
     });
 
     apiReq.on("error", (err) => {
-      console.error("API fejl:", err.message, err.code);
+      console.error("API fejl:", err.message);
       res.writeHead(500);
-      res.end(JSON.stringify({ error: err.message, code: err.code }));
+      res.end(JSON.stringify({ error: err.message }));
     });
 
     apiReq.setTimeout(10000, () => {
-      console.error("Timeout!");
       apiReq.destroy();
       res.writeHead(500);
       res.end(JSON.stringify({ error: "Timeout" }));
