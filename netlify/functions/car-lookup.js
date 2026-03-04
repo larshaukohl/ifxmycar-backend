@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
       let data = "";
       apiRes.on("data", chunk => data += chunk);
       apiRes.on("end", () => {
-        console.log("API svar:", apiRes.statusCode, data.substring(0, 100));
+        console.log("API svar:", apiRes.statusCode, data);
         res.writeHead(apiRes.statusCode);
         res.end(data);
       });
