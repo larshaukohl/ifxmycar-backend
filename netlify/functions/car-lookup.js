@@ -4,39 +4,60 @@ const http = require("http");
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 const server = http.createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const plate = url.searchParams.get("plate");
-
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Content-Type", "application/json");
 
-  if (!plate) {
-    res.writeHead(200);
-    res.end(JSON.stringify({ status: "FixMyCar API virker!", usage: "?plate=DINPLADE" }));
-    return;
-  }
+  try {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const plate = url.searchParams.get("plate");
 
-  const options = {
-    hostname: "api.motorapi.dk",
-    path: `/vehicles/${plate}`,
-    agent: agent,
-    headers: {
-      "X-Api-Key": process.env.MOTORAPI_KEY,
-      "Accept": "application/json"
+    if (!plate) {
+      res.writeHead(200);
+      res.end(JSON.stringify({ status: "FixMyCar API virker!", usage: "?plate=DINPLADE" }));
+      return;
     }
-  };
 
-  https.get(options, (apiRes) => {
-    let data = "";
-    apiRes.on("data", chunk => data += chunk);
-    apiRes.on("end", () => {
-      res.writeHead(apiRes.statusCode);
-      res.end(data);
+    const apiKey = process.env.MOTORAPI_KEY;
+    console.log("Plate:", plate, "HasKey:", !!apiKey);
+
+    const options = {
+      hostname: "api.motorapi.dk",
+      path: `/vehicles/${plate}`,
+      agent: agent,
+      headers: {
+        "X-Api-Key": apiKey,
+        "Accept": "application/json"
+      }
+    };
+
+    const apiReq = https.get(options, (apiRes) => {
+      let data = "";
+      apiRes.on("data", chunk => data += chunk);
+      apiRes.on("end", () => {
+        console.log("API svar:", apiRes.statusCode, data.substring(0, 100));
+        res.writeHead(apiRes.statusCode);
+        res.end(data);
+      });
     });
- }).on("error", (err) => {
+
+    apiReq.on("error", (err) => {
+      console.error("API fejl:", err.message, err.code);
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: err.message, code: err.code }));
+    });
+
+    apiReq.setTimeout(10000, () => {
+      console.error("Timeout!");
+      apiReq.destroy();
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: "Timeout" }));
+    });
+
+  } catch (err) {
+    console.error("Server fejl:", err.message);
     res.writeHead(500);
-    res.end(JSON.stringify({ error: err.message, code: err.code, stack: err.stack }));
-  });
+    res.end(JSON.stringify({ error: err.message }));
+  }
 });
 
 const PORT = process.env.PORT || 8080;
