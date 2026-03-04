@@ -11,8 +11,8 @@ const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "application/json");
 
   if (!plate) {
-    res.writeHead(400);
-    res.end(JSON.stringify({ error: "Mangler nummerplade" }));
+    res.writeHead(200);
+    res.end(JSON.stringify({ status: "FixMyCar API virker!", usage: "?plate=DINPLADE" }));
     return;
   }
 
@@ -40,4 +40,4 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => console.log(`Server kører på port ${PORT}`));
+server.listen(PORT, "0.0.0.0", () => console.log(`Server kører på port ${PORT}`));
