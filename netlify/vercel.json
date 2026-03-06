@@ -1,0 +1,9 @@
+
+{
+  "rewrites": [
+    {
+      "source": "/diagnose",
+      "destination": "/diagnose/index.html"
+    }
+  ]
+}
