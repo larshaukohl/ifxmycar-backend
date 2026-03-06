@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fixalot.ai — Find fejlen. Reparer den selv.</title>
+  <meta name="description" content="Beskriv dit bil-, hus- eller hvidevare-problem og få en præcis AI-diagnose på under 3 minutter. Gratis. Ingen login.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2563EB;
+      --blue-dark: #1d4ed8;
+      --blue-light: #EEF2FF;
+      --navy: #0f172a;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── HEADER ── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+    }
+    .header-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      font-size: 20px; font-weight: 800; color: var(--navy);
+      letter-spacing: -.03em; text-decoration: none;
+    }
+    .logo span { color: var(--blue); }
+    .logo-icon {
+      width: 32px; height: 32px; background: var(--blue); border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px; margin-right: 8px; vertical-align: middle;
+    }
+    .trustpilot {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted);
+    }
+    .stars { color: #00b67a; font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+    .header-cta {
+      padding: 9px 20px; background: var(--blue); color: white;
+      border-radius: 8px; font-size: 14px; font-weight: 600;
+      text-decoration: none; letter-spacing: -.01em;
+      transition: all .2s;
+    }
+    .header-cta:hover { background: var(--blue-dark); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 120px 32px 80px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1600&q=85&auto=format&fit=crop');
+      background-size: cover; background-position: center;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(15,23,42,.82) 0%, rgba(37,99,235,.68) 100%);
+    }
+    .hero-inner {
+      position: relative; z-index: 2;
+      max-width: 1080px; margin: 0 auto; width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+    }
+    .hero-left { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) forwards; }
+    .hero-right { animation: fadeUp .7s .15s cubic-bezier(.22,1,.36,1) both; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: rgba(255,255,255,.5);
+      margin-bottom: 20px;
+    }
+    .hero-eyebrow-dot {
+      width: 6px; height: 6px; background: var(--blue);
+      border-radius: 50%; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+    h1 {
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 800; color: white; line-height: 1.08;
+      letter-spacing: -.03em; margin-bottom: 20px;
+    }
+    .hero-sub {
+      font-size: 18px; color: rgba(255,255,255,.72);
+      line-height: 1.65; margin-bottom: 36px; max-width: 460px;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 16px 28px; background: var(--blue); color: white;
+      border-radius: 10px; font-size: 16px; font-weight: 700;
+      text-decoration: none; letter-spacing: -.01em;
+      box-shadow: 0 4px 20px rgba(37,99,235,.4);
+      transition: all .2s;
+    }
+    .btn-primary:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,99,235,.45); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 24px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.85);
+      border-radius: 10px; font-size: 15px; font-weight: 600;
+      text-decoration: none; border: 1px solid rgba(255,255,255,.2);
+      transition: all .2s; backdrop-filter: blur(4px);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.18); }
+
+    .hero-stats {
+      display: flex; gap: 0;
+      border-top: 1px solid rgba(255,255,255,.12); padding-top: 32px;
+    }
+    .hero-stat {
+      flex: 1; padding-right: 24px; margin-right: 24px;
+      border-right: 1px solid rgba(255,255,255,.12);
+    }
+    .hero-stat:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+    .hero-stat-num { font-size: 28px; font-weight: 800; color: white; letter-spacing: -.02em; }
+    .hero-stat-label { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+
+    /* ── HERO FORM CARD ── */
+    .hero-card {
+      background: white; border-radius: 16px;
+      padding: 32px; box-shadow: 0 24px 64px rgba(0,0,0,.25);
+    }
+    .hero-card-title {
+      font-size: 17px; font-weight: 700; color: var(--navy);
+      margin-bottom: 4px; letter-spacing: -.01em;
+    }
+    .hero-card-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+    .form-input {
+      width: 100%; padding: 13px 15px; border: 1.5px solid var(--border);
+      border-radius: 9px; font-size: 15px; font-family: inherit;
+      color: var(--text); background: var(--bg); outline: none;
+      transition: border-color .15s;
+    }
+    .form-input:focus { border-color: var(--blue); background: white; }
+    .form-textarea { resize: none; line-height: 1.6; }
+    .quick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .chip {
+      padding: 6px 12px; border-radius: 20px; background: var(--blue-light);
+      color: var(--blue); font-size: 12px; font-weight: 600;
+      border: none; cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .chip:hover { background: var(--blue); color: white; }
+    .form-submit {
+      width: 100%; padding: 15px; background: var(--blue); color: white;
+      border: none; border-radius: 9px; font-size: 15px; font-weight: 700;
+      font-family: inherit; cursor: pointer; letter-spacing: -.01em;
+      box-shadow: 0 4px 14px rgba(37,99,235,.3);
+      transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .form-submit:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    .form-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 10px; }
+
+    /* ── HOW IT WORKS ── */
+    .section { padding: 96px 32px; }
+    .section-inner { max-width: 1080px; margin: 0 auto; }
+    .section-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--blue); margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px); font-weight: 800;
+      color: var(--navy); letter-spacing: -.02em; line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .section-sub { font-size: 17px; color: var(--muted); line-height: 1.65; max-width: 540px; }
+
+    .steps {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2px; margin-top: 56px;
+      background: var(--border); border-radius: 14px; overflow: hidden;
+    }
+    .step {
+      background: white; padding: 32px 28px;
+      position: relative;
+    }
+    .step-num {
+      width: 36px; height: 36px; background: var(--blue-light);
+      color: var(--blue); border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; margin-bottom: 20px;
+    }
+    .step-icon { font-size: 28px; margin-bottom: 14px; }
+    .step-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: -.01em; }
+    .step-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+    .step-arrow {
+      position: absolute; right: -14px; top: 50%;
+      transform: translateY(-50%);
+      width: 28px; height: 28px; background: white; border: 2px solid var(--border);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: var(--blue); z-index: 1;
+    }
+
+    /* ── FEATURES ── */
+    .features-section { background: white; padding: 96px 32px; }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 2px; margin-top: 56px;
+      background: var(--border); border-radius: 14px; overflow: hidden;
+    }
+    .feature {
+      background: white; padding: 36px 32px;
+    }
+    .feature-icon {
+      width: 48px; height: 48px; background: var(--blue-light);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 20px;
+    }
+    .feature-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 10px; letter-spacing: -.01em; }
+    .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-section { padding: 96px 32px; }
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-top: 56px;
+    }
+    .testimonial {
+      background: white; border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 28px;
+      transition: all .2s;
+    }
+    .testimonial:hover { border-color: #c7d7f9; box-shadow: 0 8px 28px rgba(37,99,235,.08); transform: translateY(-2px); }
+    .testimonial-stars { color: #f59e0b; font-size: 15px; letter-spacing: 2px; margin-bottom: 14px; }
+    .testimonial-text { font-size: 15px; color: #334155; line-height: 1.7; font-style: italic; margin-bottom: 20px; }
+    .testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .testimonial-avatar {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: var(--blue); flex-shrink: 0;
+    }
+    .testimonial-name { font-size: 14px; font-weight: 700; color: var(--navy); }
+    .testimonial-car { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    /* ── CTA BANNER ── */
+    .cta-section {
+      padding: 96px 32px;
+      background: linear-gradient(160deg, var(--navy) 0%, var(--blue-dark) 100%);
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1200&q=60&auto=format&fit=crop');
+      background-size: cover; background-position: center; opacity: .08;
+    }
+    .cta-inner {
+      max-width: 640px; margin: 0 auto; text-align: center;
+      position: relative; z-index: 1;
+    }
+    .cta-title {
+      font-size: clamp(30px, 4vw, 46px); font-weight: 800; color: white;
+      letter-spacing: -.03em; line-height: 1.1; margin-bottom: 16px;
+    }
+    .cta-sub { font-size: 17px; color: rgba(255,255,255,.65); line-height: 1.65; margin-bottom: 36px; }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 18px 36px; background: white; color: var(--blue);
+      border-radius: 10px; font-size: 17px; font-weight: 800;
+      text-decoration: none; letter-spacing: -.02em;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      transition: all .2s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+    .cta-note { font-size: 13px; color: rgba(255,255,255,.4); margin-top: 14px; }
+
+    /* ── FAQ ── */
+    .faq-section { padding: 96px 32px; background: white; }
+    .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 56px; }
+    .faq-item {
+      padding: 24px 26px; background: var(--bg);
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .faq-q { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: -.01em; }
+    .faq-a { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--navy); padding: 48px 32px 32px;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .footer-inner { max-width: 1080px; margin: 0 auto; }
+    .footer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+    .footer-logo { font-size: 20px; font-weight: 800; color: white; letter-spacing: -.03em; }
+    .footer-logo span { color: var(--blue); }
+    .footer-tagline { font-size: 13px; color: rgba(255,255,255,.35); margin-top: 6px; }
+    .footer-links { display: flex; gap: 32px; }
+    .footer-link { font-size: 14px; color: rgba(255,255,255,.45); text-decoration: none; transition: color .15s; }
+    .footer-link:hover { color: white; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.06); padding-top: 24px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+    }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,.25); }
+    .footer-disclaimer { font-size: 12px; color: rgba(255,255,255,.2); line-height: 1.7; max-width: 600px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-right { display: none; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .step-arrow { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .faq-grid { grid-template-columns: 1fr; }
+      .footer-top { flex-direction: column; gap: 24px; }
+      .footer-bottom { flex-direction: column; }
+    }
+    @media (max-width: 600px) {
+      .steps { grid-template-columns: 1fr; }
+      .header-inner { padding: 0; }
+      .trustpilot { display: none; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🔧</span>Fixalot<span>.ai</span>
+      </a>
+      <div class="trustpilot">
+        <span class="stars">★★★★★</span>
+        <span>4.8 · Trustpilot</span>
+      </div>
+      <a href="/diagnose" class="header-cta">Start diagnose →</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="hero-eyebrow">
+          <div class="hero-eyebrow-dot"></div>
+          AI-drevet bildiagnose · Gratis · Ingen login
+        </div>
+        <h1>Find fejlen.<br>Reparer den selv.</h1>
+        <p class="hero-sub">
+          Beskriv dit bilproblem — AI'en stiller de rigtige spørgsmål og giver dig en præcis diagnose på under 3 minutter.
+        </p>
+        <div class="hero-actions">
+          <a href="/diagnose" class="btn-primary">Start diagnose gratis →</a>
+          <a href="#how-it-works" class="btn-ghost">Se hvordan det virker</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-num">12.400+</div>
+            <div class="hero-stat-label">Diagnoser stillet</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">94%</div>
+            <div class="hero-stat-label">Brugere hjulpet</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">&lt; 3 min</div>
+            <div class="hero-stat-label">Ventetid</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">★ 4.8</div>
+            <div class="hero-stat-label">Trustpilot</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini form i hero -->
+      <div class="hero-right">
+        <div class="hero-card">
+          <div class="hero-card-title">Hvad er problemet med din bil?</div>
+          <div class="hero-card-sub">Beskriv symptomet — vi klarer resten</div>
+          <div class="form-group">
+            <label class="form-label">Din bil</label>
+            <input class="form-input" type="text" placeholder="F.eks. VW Golf 2015, 1.6 TDI" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Beskriv problemet</label>
+            <textarea class="form-input form-textarea" rows="3" placeholder="F.eks. Bilen starter ikke og jeg hører et klik..."></textarea>
+          </div>
+          <div class="quick-chips">
+            <button class="chip" onclick="fillProblem(this)">Starter ikke</button>
+            <button class="chip" onclick="fillProblem(this)">Bremselyd</button>
+            <button class="chip" onclick="fillProblem(this)">Check engine</button>
+            <button class="chip" onclick="fillProblem(this)">Overophedning</button>
+            <button class="chip" onclick="fillProblem(this)">Vibrationer</button>
+          </div>
+          <button class="form-submit" onclick="window.location.href='/diagnose'">
+            Start diagnose →
+          </button>
+          <div class="form-note">🔒 Gratis · Ingen login · Ingen data gemt</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how-it-works">
+    <div class="section-inner">
+      <div class="section-eyebrow reveal">Sådan virker det</div>
+      <h2 class="section-title reveal">Fra problem til løsning<br>på 4 enkle trin</h2>
+      <p class="section-sub reveal">Ingen teknisk viden nødvendig. Bare beskriv hvad du oplever — AI'en guider dig resten af vejen.</p>
+
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-icon">📝</div>
+          <div class="step-num">1</div>
+          <div class="step-title">Beskriv problemet</div>
+          <div class="step-desc">Fortæl hvad der sker med din bil. Jo mere du skriver, jo bedre diagnose.</div>
+          <div class="step-arrow">→</div>
+        </div>
+        <div class="step reveal">
+          <div class="step-icon">🔍</div>
+          <div class="step-num">2</div>
+          <div class="step-title">AI stiller spørgsmål</div>
+          <div class="step-desc">Vi beder dig kigge på de mistænkte dele og beskrive hvad du ser.</div>
+          <div class="step-arrow">→</div>
+        </div>
+        <div class="step reveal">
+          <div class="step-icon">👤</div>
+          <div class="step-num">3</div>
+          <div class="step-title">Vælg dit niveau</div>
+          <div class="step-desc">Nybegynder, øvet eller ekspert — vejledningen tilpasses dig.</div>
+          <div class="step-arrow">→</div>
+        </div>
+        <div class="step reveal">
+          <div class="step-icon">✅</div>
+          <div class="step-num">4</div>
+          <div class="step-title">Få diagnosen</div>
+          <div class="step-desc">Præcise årsager, trin-for-trin løsning og direkte links til reservedele.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section">
+    <div class="section-inner">
+      <div class="section-eyebrow reveal">Fordele</div>
+      <h2 class="section-title reveal">Mere end en simpel diagnose</h2>
+      <div class="features-grid" style="margin-top:56px">
+        <div class="feature reveal">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-title">Præcis AI-diagnose</div>
+          <div class="feature-desc">Drevet af Claude AI — en af verdens mest avancerede sprogmodeller. Stiller intelligente opfølgningsspørgsmål for at ramme den rigtige diagnose.</div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon">🔧</div>
+          <div class="feature-title">Tilpasset dit niveau</div>
+          <div class="feature-desc">Uanset om du aldrig har rørt en skruenøgle eller er garageekspert — vejledningen tilpasses præcist til dig.</div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon">🛒</div>
+          <div class="feature-title">Find reservedele</div>
+          <div class="feature-desc">Direkte links til de rigtige reservedele til din bil. Sammenlign priser og køb fra din sofa.</div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon">▶️</div>
+          <div class="feature-title">YouTube-guides</div>
+          <div class="feature-desc">Se præcis hvilken video du skal følge for din bil og dit problem. Ingen søgning nødvendig.</div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon">🏁</div>
+          <div class="feature-title">Eller find en mekaniker</div>
+          <div class="feature-desc">Hvis reparationen er for stor — få 3 gratis og uforpligtende tilbud fra værksteder nær dig via Autobutler.</div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-title">Gratis og privat</div>
+          <div class="feature-desc">Ingen login. Ingen abonnement. Ingen data gemt. Bare start og få hjælp med det samme.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials-section">
+    <div class="section-inner">
+      <div class="section-eyebrow reveal">Anmeldelser</div>
+      <h2 class="section-title reveal">Hvad siger vores brugere?</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-text">"Fandt problemet med min Golf på 5 minutter. AI'en bad mig kigge på batteripolen — der var hvidt pulver. Skiftede den selv og sparede 1.800 kr hos mekanikeren!"</div>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">M</div>
+            <div>
+              <div class="testimonial-name">Mikkel T.</div>
+              <div class="testimonial-car">VW Golf 2018, 1.4 TSI</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-text">"Utrolig præcis diagnose. Spørgsmålene var super smarte — den bad mig lytte efter lyden ved kold start. Vejledningen var nem at følge selv som total nybegynder."</div>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">S</div>
+            <div>
+              <div class="testimonial-name">Sofie M.</div>
+              <div class="testimonial-car">Toyota Yaris 2020</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-text">"Brugte det på min kones bil. Diagnosen stemte perfekt overens med hvad mekanikeren sagde bagefter — og vi vidste præcis hvad han snakkede om. Imponerende!"</div>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">L</div>
+            <div>
+              <div class="testimonial-name">Lars K.</div>
+              <div class="testimonial-car">BMW 3-serie 2016, 320d</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="section-inner">
+      <div class="section-eyebrow reveal">Ofte stillede spørgsmål</div>
+      <h2 class="section-title reveal">Har du spørgsmål?</h2>
+      <div class="faq-grid">
+        <div class="faq-item reveal">
+          <div class="faq-q">Er det gratis at bruge?</div>
+          <div class="faq-a">Ja, helt gratis. Ingen login, ingen kreditkort, ingen skjulte gebyrer. Bare start og få hjælp.</div>
+        </div>
+        <div class="faq-item reveal">
+          <div class="faq-q">Hvor præcis er AI-diagnosen?</div>
+          <div class="faq-a">Vi stiller altid opfølgende spørgsmål og beder dig undersøge bilen fysisk, hvilket giver en langt mere præcis diagnose end generiske søgninger.</div>
+        </div>
+        <div class="faq-item reveal">
+          <div class="faq-q">Kan jeg reparere alle fejl selv?</div>
+          <div class="faq-a">Mange fejl kan du sagtens klare selv. Kritiske komponenter som ABS, airbags og gearkasse anbefaler vi altid overlades til en autoriseret mekaniker.</div>
+        </div>
+        <div class="faq-item reveal">
+          <div class="faq-q">Hvad hvis diagnosen er forkert?</div>
+          <div class="faq-a">Fixalot.ai er vejledende. Vi påtager os intet ansvar for fejlreparationer. Er du i tvivl, anbefaler vi altid at konsultere en professionel mekaniker.</div>
+        </div>
+        <div class="faq-item reveal">
+          <div class="faq-q">Hvilke biler understøttes?</div>
+          <div class="faq-a">Alle personbiler uanset mærke, model og årstal. AI'en tilpasser diagnosen til din specifikke bil.</div>
+        </div>
+        <div class="faq-item reveal">
+          <div class="faq-q">Gemmer I mine data?</div>
+          <div class="faq-a">Nej. Vi gemmer ikke dine diagnoser eller biloplysninger. Hver session starter frisk.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-section">
+    <div class="cta-inner reveal">
+      <h2 class="cta-title">Klar til at finde fejlen?</h2>
+      <p class="cta-sub">Kom i gang på under et minut. Gratis, uden login og uden forpligtelser.</p>
+      <a href="/diagnose" class="cta-btn">Start diagnose gratis →</a>
+      <div class="cta-note">★★★★★ Trustpilot · 12.400+ diagnoser stillet</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div>
+          <div class="footer-logo">Fixalot<span>.ai</span></div>
+          <div class="footer-tagline">AI-drevet bildiagnose · Gratis · Ingen login</div>
+        </div>
+        <div class="footer-links">
+          <a href="/diagnose" class="footer-link">Start diagnose</a>
+          <a href="#how-it-works" class="footer-link">Sådan virker det</a>
+          <a href="/cdn-cgi/l/email-protection#99f1fcf3d9fff0e1f4e0faf8ebb7f8f0" class="footer-link">Kontakt</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2026 Fixalot.ai · Powered by Claude AI</div>
+        <div class="footer-disclaimer">
+          Fixalot.ai er en vejledende tjeneste baseret på AI. Vi påtager os intet ansvar for skader, ulykker eller fejlreparationer som følge af brug af denne tjeneste. Reparationer på kritiske komponenter som bremser, styretøj, affjedring og motorstyring bør altid udføres af en autoriseret mekaniker.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Quick chips
+    function fillProblem(btn) {
+      document.querySelector('.form-textarea').value = btn.textContent;
+      document.querySelectorAll('.chip').f
